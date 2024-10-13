@@ -803,6 +803,7 @@ py_strict_test(
         "@absl_py//absl/flags",
         "@absl_py//absl/logging",
         "@absl_py//absl/testing:absltest",
+        "@ml_dtypes",
     ] + xla_py_test_deps(),
 )
 

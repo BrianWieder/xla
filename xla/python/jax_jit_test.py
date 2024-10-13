@@ -14,6 +14,8 @@
 # ==============================================================================
 """Tests for jax_jit helper functions."""
 
+import atexit
+
 from absl.testing import absltest
 
 from xla.python import xla_client
@@ -22,6 +24,11 @@ jax_jit = xla_client._xla.jax_jit
 pytree = xla_client._xla.pytree
 
 pytree_registry = pytree.default_registry()
+
+
+@atexit.register
+def clear_default_registry():
+  pytree.clear_default_registry()
 
 
 class JaxJitTest(absltest.TestCase):
