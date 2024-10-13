@@ -36,6 +36,7 @@ limitations under the License.
 #include "absl/algorithm/container.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/inlined_vector.h"
+#include "absl/base/no_destructor.h"
 #include "absl/hash/hash.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -59,7 +60,7 @@ namespace xla {
 namespace nb = nanobind;
 
 static absl::Mutex default_registry_mu;
-static std::optional<nb_class_ptr<PyTreeRegistry>> default_registry = std::nullopt;
+static absl::NoDestructor<std::optional<nb_class_ptr<PyTreeRegistry>>> default_registry;
 
 PyTreeRegistry::PyTreeRegistry(bool enable_none, bool enable_tuple,
                                bool enable_namedtuple, bool enable_list,
@@ -182,14 +183,14 @@ PyTreeKind PyTreeRegistry::KindOfObject(
 
 nb_class_ptr<PyTreeRegistry> DefaultPyTreeRegistry() {
   absl::MutexLock lock(&default_registry_mu);
-  if (!default_registry) {
-    default_registry = make_nb_class<PyTreeRegistry>(
+  if (!default_registry->has_value()) {
+    *default_registry = make_nb_class<PyTreeRegistry>(
       /*enable_none=*/true, /*enable_tuple=*/true,
       /*enable_namedtuple=*/true, /*enable_list=*/true,
       /*enable_dict=*/true
     );
   }
-  return default_registry.value();
+  return default_registry->value();
 }
 
 void ClearDefaultPyTreeregistry() {
